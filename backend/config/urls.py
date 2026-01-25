@@ -17,8 +17,23 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
+from django.http import JsonResponse
+
+def api_root(request):
+    return JsonResponse({
+        'message': 'Chemical Equipment Analysis API',
+        'endpoints': {
+            'analyze': '/api/analyze/',
+            'history': '/api/history/',
+            'dataset_detail': '/api/dataset/<id>/',
+            'login': '/api/login/',
+            'register': '/api/register/',
+            'admin': '/admin/'
+        }
+    })
 
 urlpatterns = [
+    path("", api_root, name="api-root"),
     path("admin/", admin.site.urls),
     path("api/", include("api.urls")),
 ]
