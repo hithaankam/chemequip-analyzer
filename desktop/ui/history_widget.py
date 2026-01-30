@@ -379,7 +379,7 @@ class HistoryWidget(QWidget):
                 QMessageBox.critical(self, "Error", f"Error deleting dataset: {str(e)}")
                 
     def export_selected_report(self):
-        """Export report for selected dataset"""
+        """Export PDF report for selected dataset"""
         selected_rows = self.history_table.selectionModel().selectedRows()
         if not selected_rows:
             return
@@ -391,10 +391,77 @@ class HistoryWidget(QWidget):
             QMessageBox.information(self, "No Analysis", 
                                   "This dataset has not been analyzed yet.")
             return
+        
+        try:
+            # Show progress dialog
+            from PyQt5.QtWidgets import QProgressDialog
+            from PyQt5.QtCore import QTimer
             
-        # TODO: Implement PDF report generation
-        QMessageBox.information(self, "Export Report", 
-                              "PDF report generation will be implemented in the next version.")
+            progress = QProgressDialog("Generating PDF report...", "Cancel", 0, 0, self)
+            progress.setWindowTitle("PDF Generation")
+            progress.setModal(True)
+            progress.show()
+            
+            # Generate PDF using dataset ID
+            dataset_id = dataset.get('id')
+            if dataset_id:
+                pdf_content = self.api_client.generate_pdf_from_dataset(dataset_id)
+            else:
+                # Fallback to using analysis results directly
+                analysis_results = dataset.get('analysis_results', {})
+                dataset_info = {
+                    'filename': dataset.get('filename', 'equipment_data.csv'),
+                    'upload_date': dataset.get('upload_date', ''),
+                    'equipment_count': dataset.get('equipment_count', 0)
+                }
+                pdf_content = self.api_client.generate_pdf_report(analysis_results, dataset_info)
+            
+            # Save PDF file
+            from PyQt5.QtWidgets import QFileDialog
+            import os
+            from datetime import datetime
+            
+            dataset_name = dataset.get('filename', 'equipment_data').replace('.csv', '')
+            default_filename = f"{dataset_name}_analysis_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+            
+            file_path, _ = QFileDialog.getSaveFileName(
+                self,
+                "Save PDF Report",
+                default_filename,
+                "PDF Files (*.pdf);;All Files (*)"
+            )
+            
+            progress.close()
+            
+            if file_path:
+                with open(file_path, 'wb') as f:
+                    f.write(pdf_content)
+                
+                QMessageBox.information(self, "Success", f"PDF report saved successfully to:\n{file_path}")
+                
+                # Ask if user wants to open the PDF
+                reply = QMessageBox.question(
+                    self, 
+                    'Open PDF', 
+                    'Would you like to open the PDF report now?',
+                    QMessageBox.Yes | QMessageBox.No, 
+                    QMessageBox.Yes
+                )
+                
+                if reply == QMessageBox.Yes:
+                    import subprocess
+                    import platform
+                    
+                    if platform.system() == 'Windows':
+                        os.startfile(file_path)
+                    elif platform.system() == 'Darwin':  # macOS
+                        subprocess.call(['open', file_path])
+                    else:  # Linux
+                        subprocess.call(['xdg-open', file_path])
+            
+        except Exception as e:
+            progress.close() if 'progress' in locals() else None
+            QMessageBox.critical(self, "Error", f"Failed to generate PDF report:\n{str(e)}")
         
     def showEvent(self, event):
         """Handle widget show event"""

@@ -32,6 +32,7 @@ api.interceptors.response.use(
   (response) => {
     console.log('API Response Success:', {
       status: response.status,
+      url: response.config.url,
       data: response.data
     });
     return response;
@@ -39,9 +40,18 @@ api.interceptors.response.use(
   (error) => {
     console.error('API Response Error:', {
       status: error.response?.status,
+      url: error.config?.url,
       data: error.response?.data,
       message: error.message
     });
+    
+    // If unauthorized, clear auth data
+    if (error.response?.status === 401) {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('user');
+      window.location.reload();
+    }
+    
     return Promise.reject(error);
   }
 );
@@ -52,6 +62,9 @@ export const authAPI = {
 };
 
 export const dataAPI = {
+  // Test connection to backend using health check endpoint
+  testConnection: () => api.get('/health/', { baseURL: 'http://127.0.0.1:8000' }),
+  
   uploadFile: (file) => {
     const formData = new FormData();
     formData.append('file', file);
@@ -63,6 +76,22 @@ export const dataAPI = {
   },
   getHistory: () => api.get('/history/'),
   getDataset: (id) => api.get(`/dataset/${id}/`),
+  generatePDF: (analysisResults, datasetInfo) => {
+    return api.post('/generate-pdf/', {
+      analysis_results: analysisResults,
+      dataset_info: datasetInfo
+    }, {
+      responseType: 'blob', // Important for PDF download
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  },
+  generatePDFFromDataset: (datasetId) => {
+    return api.get(`/generate-pdf/${datasetId}/`, {
+      responseType: 'blob', // Important for PDF download
+    });
+  },
 };
 
 export default api;

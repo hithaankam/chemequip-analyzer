@@ -121,15 +121,18 @@ class MainWindow(QMainWindow):
         title_section.addWidget(title_label)
         title_section.addWidget(subtitle_label)
         
-        # User info
+        # User info with proper padding and margin
         self.user_label = QLabel("Not logged in")
         self.user_label.setStyleSheet(f"""
             QLabel {{
                 background-color: {COLORS['surface_variant']};
                 color: {COLORS['text_secondary']};
-                padding: {SPACING['sm']}px {SPACING['md']}px;
-                border-radius: 16px;
+                padding: {SPACING['md']}px {SPACING['lg']}px;
+                margin: 0 {SPACING['md']}px 0 0;
+                border-radius: 20px;
                 font-size: {TYPOGRAPHY['body']['size']}px;
+                font-weight: 500;
+                min-width: 120px;
             }}
         """)
         
@@ -201,6 +204,14 @@ class MainWindow(QMainWindow):
         
         file_menu.addSeparator()
         
+        # PDF generation action
+        self.pdf_action = QAction('Generate PDF Report', self)
+        self.pdf_action.triggered.connect(self.generate_pdf_report)
+        self.pdf_action.setEnabled(False)  # Initially disabled
+        file_menu.addAction(self.pdf_action)
+        
+        file_menu.addSeparator()
+        
         exit_action = QAction('Exit', self)
         exit_action.triggered.connect(self.close)
         file_menu.addAction(exit_action)
@@ -221,11 +232,15 @@ class MainWindow(QMainWindow):
         # History widget signals  
         self.history_widget.dataset_selected.connect(self.on_dataset_selected)
         
+        # Dashboard widget signals
+        self.dashboard_widget.pdf_generation_requested.connect(self.generate_pdf_report)
+        
     def check_authentication(self):
         """Check if user is already authenticated"""
         if not self.api_client.test_connection():
-            QMessageBox.warning(self, "Connection Error", 
-                              "Cannot connect to backend API. Please ensure the Django server is running.")
+            self.show_styled_message("Connection Error", 
+                                   "Cannot connect to backend API. Please ensure the Django server is running.",
+                                   "warning")
             return
             
         if not self.current_user:
@@ -249,17 +264,19 @@ class MainWindow(QMainWindow):
         self.show_login_dialog()
         
     def update_user_display(self):
-        """Update user information display"""
+        """Update user information display with consistent styling"""
         if self.current_user:
             self.user_label.setText(f"Welcome, {self.current_user['username']}")
             self.user_label.setStyleSheet(f"""
                 QLabel {{
                     background-color: {COLORS['primary']};
                     color: white;
-                    padding: {SPACING['sm']}px {SPACING['md']}px;
-                    border-radius: 16px;
+                    padding: {SPACING['md']}px {SPACING['lg']}px;
+                    margin: 0 {SPACING['md']}px 0 0;
+                    border-radius: 20px;
                     font-size: {TYPOGRAPHY['body']['size']}px;
-                    font-weight: 500;
+                    font-weight: 600;
+                    min-width: 120px;
                 }}
             """)
         else:
@@ -268,9 +285,12 @@ class MainWindow(QMainWindow):
                 QLabel {{
                     background-color: {COLORS['surface_variant']};
                     color: {COLORS['text_secondary']};
-                    padding: {SPACING['sm']}px {SPACING['md']}px;
-                    border-radius: 16px;
+                    padding: {SPACING['md']}px {SPACING['lg']}px;
+                    margin: 0 {SPACING['md']}px 0 0;
+                    border-radius: 20px;
                     font-size: {TYPOGRAPHY['body']['size']}px;
+                    font-weight: 500;
+                    min-width: 120px;
                 }}
             """)
             
@@ -281,11 +301,94 @@ class MainWindow(QMainWindow):
         self.tab_widget.setCurrentIndex(1)  # Switch to dashboard tab
         self.history_widget.refresh_history()
         
+        # Enable PDF generation
+        self.pdf_action.setEnabled(True)
+        
     def on_dataset_selected(self, dataset_data):
         """Handle dataset selection from history"""
         self.current_analysis = dataset_data
         self.dashboard_widget.update_analysis(dataset_data)
         self.tab_widget.setCurrentIndex(1)  # Switch to dashboard tab
+        
+        # Enable PDF generation
+        self.pdf_action.setEnabled(True)
+        
+    def generate_pdf_report(self):
+        """Generate and save PDF report"""
+        if not self.current_analysis:
+            self.show_styled_message("No Data", "No analysis data available for PDF generation.", "warning")
+            return
+            
+        if not self.api_client.token:
+            self.show_styled_message("Authentication Required", "Please login to generate PDF reports.", "warning")
+            return
+        
+        try:
+            # Show progress dialog
+            from PyQt5.QtWidgets import QProgressDialog
+            from PyQt5.QtCore import QTimer
+            
+            progress = QProgressDialog("Generating PDF report...", "Cancel", 0, 0, self)
+            progress.setWindowTitle("PDF Generation")
+            progress.setModal(True)
+            progress.show()
+            
+            # Get analysis results
+            analysis_results = self.current_analysis.get('analysis_results', {})
+            dataset_info = {
+                'filename': 'equipment_data.csv',  # You can enhance this to get actual filename
+                'upload_date': self.current_analysis.get('upload_date', ''),
+                'equipment_count': analysis_results.get('summary_metrics', {}).get('dataset_overview', {}).get('total_equipment_count', 0)
+            }
+            
+            # Generate PDF
+            pdf_content = self.api_client.generate_pdf_report(analysis_results, dataset_info)
+            
+            # Save PDF file
+            from PyQt5.QtWidgets import QFileDialog
+            import os
+            from datetime import datetime
+            
+            default_filename = f"equipment_analysis_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+            file_path, _ = QFileDialog.getSaveFileName(
+                self,
+                "Save PDF Report",
+                default_filename,
+                "PDF Files (*.pdf);;All Files (*)"
+            )
+            
+            progress.close()
+            
+            if file_path:
+                with open(file_path, 'wb') as f:
+                    f.write(pdf_content)
+                
+                self.show_styled_message("Success", f"PDF report saved successfully to:\n{file_path}", "info")
+                
+                # Ask if user wants to open the PDF
+                from PyQt5.QtWidgets import QMessageBox
+                reply = QMessageBox.question(
+                    self, 
+                    'Open PDF', 
+                    'Would you like to open the PDF report now?',
+                    QMessageBox.Yes | QMessageBox.No, 
+                    QMessageBox.Yes
+                )
+                
+                if reply == QMessageBox.Yes:
+                    import subprocess
+                    import platform
+                    
+                    if platform.system() == 'Windows':
+                        os.startfile(file_path)
+                    elif platform.system() == 'Darwin':  # macOS
+                        subprocess.call(['open', file_path])
+                    else:  # Linux
+                        subprocess.call(['xdg-open', file_path])
+            
+        except Exception as e:
+            progress.close() if 'progress' in locals() else None
+            self.show_styled_message("Error", f"Failed to generate PDF report:\n{str(e)}", "error")
         
     def show_about(self):
         """Show about dialog"""

@@ -8,6 +8,8 @@ from PyQt5.QtCore import Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QFont, QDragEnterEvent, QDropEvent
 import os
 
+from .design_system import COLORS, SPACING, TYPOGRAPHY
+
 class UploadWorker(QThread):
     """Worker thread for file upload to prevent UI blocking"""
     progress = pyqtSignal(int)
@@ -43,188 +45,160 @@ class UploadWidget(QWidget):
         self.init_ui()
         
     def init_ui(self):
-        """Initialize upload widget UI"""
+        """Initialize upload widget UI with professional styling"""
         layout = QVBoxLayout(self)
-        layout.setSpacing(25)
-        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(SPACING['lg'])
+        layout.setContentsMargins(SPACING['lg'], SPACING['lg'], SPACING['lg'], SPACING['lg'])
         
-        # Title
+        # Title - Fix typo and improve typography
         title_label = QLabel("Upload Chemical Equipment Data")
-        title_font = QFont()
-        title_font.setPointSize(18)
-        title_font.setBold(True)
-        title_label.setFont(title_font)
         title_label.setAlignment(Qt.AlignCenter)
-        title_label.setStyleSheet("""
-            QLabel {
-                color: #333;
-                margin: 20px;
-                padding: 15px;
-                background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-                border-radius: 10px;
-                border-left: 4px solid #667eea;
-            }
+        title_label.setStyleSheet(f"""
+            QLabel {{
+                color: {COLORS['text_primary']};
+                font-size: 20px;
+                font-weight: 600;
+                margin: {SPACING['md']}px 0;
+                padding: {SPACING['lg']}px;
+                background-color: {COLORS['surface']};
+                border-radius: 8px;
+                border-left: 4px solid {COLORS['primary']};
+            }}
         """)
         layout.addWidget(title_label)
         
         # Upload area
         self.create_upload_area(layout)
         
-        # File info
+        # File info with better styling
         self.file_info_label = QLabel("No file selected")
         self.file_info_label.setAlignment(Qt.AlignCenter)
-        self.file_info_label.setStyleSheet("""
-            QLabel {
-                color: #666; 
-                font-style: italic; 
-                font-size: 14px;
-                margin: 15px;
-                padding: 10px;
-                background-color: #f8f9fa;
-                border-radius: 8px;
-            }
+        self.file_info_label.setStyleSheet(f"""
+            QLabel {{
+                color: {COLORS['text_disabled']};
+                font-style: italic;
+                font-size: {TYPOGRAPHY['body']['size']}px;
+                margin: {SPACING['md']}px 0;
+                padding: {SPACING['md']}px;
+                background-color: {COLORS['surface_variant']};
+                border-radius: 6px;
+            }}
         """)
         layout.addWidget(self.file_info_label)
         
-        # Upload button - Make it more visible and always show
-        button_container = QFrame()
-        button_container.setStyleSheet("""
-            QFrame {
-                background-color: white;
-                border: 1px solid #ddd;
-                border-radius: 10px;
-                padding: 20px;
-                margin: 10px;
-            }
-        """)
-        button_layout = QVBoxLayout(button_container)
+        # Upload button container with improved styling
+        self.create_upload_button_section(layout)
         
-        self.upload_button = QPushButton("🚀 Upload & Analyze Dataset")
-        self.upload_button.setEnabled(False)
-        self.upload_button.setMinimumHeight(60)  # Make it taller
-        self.upload_button.setStyleSheet("""
-            QPushButton {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-                border: 2px solid #5a6fd8;
-                padding: 20px 40px;
-                border-radius: 12px;
-                font-size: 18px;
-                font-weight: bold;
-                margin: 5px;
-            }
-            QPushButton:hover:enabled {
-                background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
-                border-color: #4c63d2;
-                transform: translateY(-2px);
-            }
-            QPushButton:disabled {
-                background: #e9ecef;
-                color: #6c757d;
-                border: 2px solid #dee2e6;
-            }
-            QPushButton:pressed:enabled {
-                background: linear-gradient(135deg, #4c63d2 0%, #5a4180 100%);
-            }
-        """)
-        self.upload_button.clicked.connect(self.handle_upload)
-        button_layout.addWidget(self.upload_button)
-        
-        # Add a label to show button status
-        self.button_status_label = QLabel("Select a CSV file to enable the analyze button")
-        self.button_status_label.setAlignment(Qt.AlignCenter)
-        self.button_status_label.setStyleSheet("""
-            QLabel {
-                color: #666; 
-                font-style: italic; 
-                font-size: 14px;
-                margin: 10px;
-                padding: 10px;
-            }
-        """)
-        button_layout.addWidget(self.button_status_label)
-        
-        layout.addWidget(button_container)
-        
-        # Progress bar
+        # Progress bar with professional styling
         self.progress_bar = QProgressBar()
         self.progress_bar.setVisible(False)
-        self.progress_bar.setStyleSheet("""
-            QProgressBar {
-                border: 2px solid #ddd;
-                border-radius: 5px;
+        self.progress_bar.setStyleSheet(f"""
+            QProgressBar {{
+                border: 2px solid {COLORS['border']};
+                border-radius: 6px;
                 text-align: center;
-            }
-            QProgressBar::chunk {
-                background-color: #667eea;
-                border-radius: 3px;
-            }
+                font-weight: 500;
+                color: {COLORS['text_primary']};
+                background-color: {COLORS['surface']};
+                min-height: 24px;
+            }}
+            QProgressBar::chunk {{
+                background-color: {COLORS['primary']};
+                border-radius: 4px;
+            }}
         """)
         layout.addWidget(self.progress_bar)
         
-        # Status label
+        # Status label with better styling
         self.status_label = QLabel("")
         self.status_label.setAlignment(Qt.AlignCenter)
+        self.status_label.setStyleSheet(f"""
+            QLabel {{
+                font-size: {TYPOGRAPHY['body']['size']}px;
+                font-weight: 500;
+                margin: {SPACING['sm']}px 0;
+                padding: {SPACING['sm']}px;
+            }}
+        """)
         layout.addWidget(self.status_label)
         
         layout.addStretch()
         
     def create_upload_area(self, layout):
-        """Create drag-and-drop upload area"""
+        """Create professional drag-and-drop upload area"""
         upload_frame = QFrame()
         upload_frame.setFrameStyle(QFrame.Box)
-        upload_frame.setStyleSheet("""
-            QFrame {
-                border: 2px dashed #ddd;
-                border-radius: 10px;
-                background-color: #f8f9fa;
-                min-height: 200px;
-            }
-            QFrame:hover {
-                border-color: #667eea;
-                background-color: #f0f4ff;
-            }
+        upload_frame.setStyleSheet(f"""
+            QFrame {{
+                border: 2px dashed {COLORS['border']};
+                border-radius: 8px;
+                background-color: {COLORS['surface_variant']};
+                min-height: 180px;
+            }}
+            QFrame:hover {{
+                border-color: {COLORS['primary']};
+                background-color: {COLORS['surface']};
+            }}
         """)
         upload_frame.setAcceptDrops(True)
         
         frame_layout = QVBoxLayout(upload_frame)
         frame_layout.setAlignment(Qt.AlignCenter)
+        frame_layout.setSpacing(SPACING['md'])
         
-        # Upload icon (text-based)
+        # Upload icon
         icon_label = QLabel("📁")
         icon_label.setAlignment(Qt.AlignCenter)
-        icon_label.setStyleSheet("font-size: 48px; margin-bottom: 10px;")
+        icon_label.setStyleSheet("font-size: 42px; margin-bottom: 8px;")
         frame_layout.addWidget(icon_label)
         
-        # Instructions
+        # Instructions with better typography
         instruction_label = QLabel("Drop CSV file here or click to browse")
         instruction_label.setAlignment(Qt.AlignCenter)
-        instruction_label.setStyleSheet("font-size: 16px; color: #666; margin-bottom: 10px;")
+        instruction_label.setStyleSheet(f"""
+            QLabel {{
+                font-size: {TYPOGRAPHY['body']['size']}px;
+                color: {COLORS['text_secondary']};
+                font-weight: 500;
+                margin-bottom: {SPACING['sm']}px;
+            }}
+        """)
         frame_layout.addWidget(instruction_label)
         
-        # Browse button
+        # Browse button with professional styling
         browse_button = QPushButton("Browse Files")
-        browse_button.setStyleSheet("""
-            QPushButton {
-                background-color: #f8f9fa;
-                border: 2px solid #667eea;
-                color: #667eea;
-                padding: 10px 20px;
-                border-radius: 5px;
-                font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #667eea;
+        browse_button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLORS['surface']};
+                border: 2px solid {COLORS['primary']};
+                color: {COLORS['primary']};
+                padding: {SPACING['sm']}px {SPACING['lg']}px;
+                border-radius: 6px;
+                font-weight: 600;
+                font-size: {TYPOGRAPHY['body']['size']}px;
+            }}
+            QPushButton:hover {{
+                background-color: {COLORS['primary']};
                 color: white;
-            }
+            }}
+            QPushButton:pressed {{
+                background-color: {COLORS['primary_dark']};
+                color: white;
+            }}
         """)
         browse_button.clicked.connect(self.browse_file)
         frame_layout.addWidget(browse_button)
         
-        # File requirements
+        # File requirements with better styling
         req_label = QLabel("Supported: CSV files up to 10MB")
         req_label.setAlignment(Qt.AlignCenter)
-        req_label.setStyleSheet("font-size: 12px; color: #999; margin-top: 10px;")
+        req_label.setStyleSheet(f"""
+            QLabel {{
+                font-size: {TYPOGRAPHY['caption']['size']}px;
+                color: {COLORS['text_disabled']};
+                margin-top: {SPACING['sm']}px;
+            }}
+        """)
         frame_layout.addWidget(req_label)
         
         layout.addWidget(upload_frame)
@@ -232,6 +206,66 @@ class UploadWidget(QWidget):
         # Enable drag and drop
         upload_frame.dragEnterEvent = self.drag_enter_event
         upload_frame.dropEvent = self.drop_event
+        
+    def create_upload_button_section(self, layout):
+        """Create professional upload button section"""
+        button_container = QFrame()
+        button_container.setStyleSheet(f"""
+            QFrame {{
+                background-color: {COLORS['surface']};
+                border: 1px solid {COLORS['border']};
+                border-radius: 8px;
+                padding: {SPACING['lg']}px;
+                margin: {SPACING['sm']}px 0;
+            }}
+        """)
+        button_layout = QVBoxLayout(button_container)
+        button_layout.setSpacing(SPACING['md'])
+        
+        # Upload button with professional styling
+        self.upload_button = QPushButton("🚀 Upload & Analyze Dataset")
+        self.upload_button.setEnabled(False)
+        self.upload_button.setMinimumHeight(50)
+        self.upload_button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLORS['primary']};
+                color: white;
+                border: none;
+                padding: {SPACING['lg']}px {SPACING['xl']}px;
+                border-radius: 8px;
+                font-size: 16px;
+                font-weight: 600;
+                margin: {SPACING['xs']}px 0;
+            }}
+            QPushButton:hover:enabled {{
+                background-color: {COLORS['primary_light']};
+            }}
+            QPushButton:pressed:enabled {{
+                background-color: {COLORS['primary_dark']};
+            }}
+            QPushButton:disabled {{
+                background-color: {COLORS['border']};
+                color: {COLORS['text_disabled']};
+            }}
+        """)
+        self.upload_button.clicked.connect(self.handle_upload)
+        button_layout.addWidget(self.upload_button)
+        
+        # Status label with better styling
+        self.button_status_label = QLabel("Select a CSV file to enable the analyze button")
+        self.button_status_label.setAlignment(Qt.AlignCenter)
+        self.button_status_label.setStyleSheet(f"""
+            QLabel {{
+                color: {COLORS['text_disabled']};
+                font-style: italic;
+                font-size: {TYPOGRAPHY['caption']['size']}px;
+                margin: {SPACING['sm']}px 0;
+                padding: {SPACING['sm']}px;
+            }}
+        """)
+        button_layout.addWidget(self.button_status_label)
+        
+        layout.addWidget(button_container)
         
     def browse_file(self):
         """Open file browser dialog"""
@@ -264,8 +298,8 @@ class UploadWidget(QWidget):
                 event.acceptProposedAction()
                 
     def set_selected_file(self, file_path):
-        """Set the selected file and update UI"""
-        print(f"DEBUG: Setting selected file: {file_path}")  # Debug line
+        """Set the selected file and update UI with professional styling"""
+        print(f"DEBUG: Setting selected file: {file_path}")
         self.selected_file = file_path
         
         # Get file info
@@ -273,21 +307,52 @@ class UploadWidget(QWidget):
         file_size = os.path.getsize(file_path)
         file_size_kb = file_size / 1024
         
-        # Update UI
+        # Update UI with success styling
         self.file_info_label.setText(f"✅ Selected: {file_name} ({file_size_kb:.1f} KB)")
-        self.file_info_label.setStyleSheet("color: #28a745; font-weight: bold; margin: 10px;")
+        self.file_info_label.setStyleSheet(f"""
+            QLabel {{
+                color: {COLORS['success']};
+                font-weight: 600;
+                font-style: normal;
+                font-size: {TYPOGRAPHY['body']['size']}px;
+                margin: {SPACING['md']}px 0;
+                padding: {SPACING['md']}px;
+                background-color: {COLORS['surface']};
+                border: 1px solid {COLORS['success']};
+                border-radius: 6px;
+            }}
+        """)
+        
         self.upload_button.setEnabled(True)
         self.button_status_label.setText("✅ Ready to analyze! Click the button above.")
-        self.button_status_label.setStyleSheet("color: #28a745; font-weight: bold; margin: 5px;")
-        print(f"DEBUG: Upload button enabled: {self.upload_button.isEnabled()}")  # Debug line
+        self.button_status_label.setStyleSheet(f"""
+            QLabel {{
+                color: {COLORS['success']};
+                font-weight: 600;
+                font-style: normal;
+                font-size: {TYPOGRAPHY['caption']['size']}px;
+                margin: {SPACING['sm']}px 0;
+                padding: {SPACING['sm']}px;
+            }}
+        """)
+        print(f"DEBUG: Upload button enabled: {self.upload_button.isEnabled()}")
         
         # Validate file size
         if file_size > 10 * 1024 * 1024:  # 10MB limit
             self.show_error("File size exceeds 10MB limit")
             self.upload_button.setEnabled(False)
             self.button_status_label.setText("❌ File too large (max 10MB)")
-            self.button_status_label.setStyleSheet("color: #dc3545; font-weight: bold; margin: 5px;")
-            print("DEBUG: Upload button disabled due to file size")  # Debug line
+            self.button_status_label.setStyleSheet(f"""
+                QLabel {{
+                    color: {COLORS['error']};
+                    font-weight: 600;
+                    font-style: normal;
+                    font-size: {TYPOGRAPHY['caption']['size']}px;
+                    margin: {SPACING['sm']}px 0;
+                    padding: {SPACING['sm']}px;
+                }}
+            """)
+            print("DEBUG: Upload button disabled due to file size")
             
     def handle_upload(self):
         """Handle file upload and analysis"""
@@ -316,44 +381,86 @@ class UploadWidget(QWidget):
         print("DEBUG: Upload worker started")  # Debug line
         
     def on_upload_success(self, result):
-        """Handle successful upload"""
+        """Handle successful upload with professional feedback"""
         self.set_uploading(False)
-        self.status_label.setText("Analysis completed successfully!")
-        self.status_label.setStyleSheet("color: #28a745; font-weight: bold;")
+        self.status_label.setText("✅ Analysis completed successfully!")
+        self.status_label.setStyleSheet(f"""
+            QLabel {{
+                color: {COLORS['success']};
+                font-weight: 600;
+                font-size: {TYPOGRAPHY['body']['size']}px;
+                background-color: {COLORS['surface']};
+                border: 1px solid {COLORS['success']};
+                border-radius: 6px;
+                padding: {SPACING['md']}px;
+            }}
+        """)
         self.status_message.emit("Analysis completed successfully")
         
         # Emit analysis completed signal
         self.analysis_completed.emit(result)
         
-        # Reset for next upload
+        # Reset for next upload after a brief delay
         self.reset_upload()
         
     def on_upload_error(self, error_message):
-        """Handle upload error"""
+        """Handle upload error with professional feedback"""
         self.set_uploading(False)
         self.show_error(f"Upload failed: {error_message}")
         self.status_message.emit("Upload failed")
         
     def show_error(self, message):
-        """Show error message"""
-        self.status_label.setText(message)
-        self.status_label.setStyleSheet("color: #dc3545; font-weight: bold;")
+        """Show error message with professional styling"""
+        self.status_label.setText(f"❌ {message}")
+        self.status_label.setStyleSheet(f"""
+            QLabel {{
+                color: {COLORS['error']};
+                font-weight: 600;
+                font-size: {TYPOGRAPHY['body']['size']}px;
+                background-color: {COLORS['surface']};
+                border: 1px solid {COLORS['error']};
+                border-radius: 6px;
+                padding: {SPACING['md']}px;
+            }}
+        """)
+        
+    def reset_upload(self):
+        """Reset upload widget for next file with professional styling"""
+        self.selected_file = None
+        self.file_info_label.setText("No file selected")
+        self.file_info_label.setStyleSheet(f"""
+            QLabel {{
+                color: {COLORS['text_disabled']};
+                font-style: italic;
+                font-size: {TYPOGRAPHY['body']['size']}px;
+                margin: {SPACING['md']}px 0;
+                padding: {SPACING['md']}px;
+                background-color: {COLORS['surface_variant']};
+                border-radius: 6px;
+            }}
+        """)
+        self.upload_button.setEnabled(False)
+        self.button_status_label.setText("Select a CSV file to enable the analyze button")
+        self.button_status_label.setStyleSheet(f"""
+            QLabel {{
+                color: {COLORS['text_disabled']};
+                font-style: italic;
+                font-size: {TYPOGRAPHY['caption']['size']}px;
+                margin: {SPACING['sm']}px 0;
+                padding: {SPACING['sm']}px;
+            }}
+        """)
+        
+        # Clear status message
+        self.status_label.setText("")
         
     def set_uploading(self, uploading):
-        """Set uploading state"""
+        """Set uploading state and update UI accordingly"""
         self.upload_button.setEnabled(not uploading)
         self.progress_bar.setVisible(uploading)
         
         if uploading:
-            self.progress_bar.setValue(0)
+            self.upload_button.setText("🔄 Analyzing...")
         else:
-            self.progress_bar.setVisible(False)
-            
-    def reset_upload(self):
-        """Reset upload widget for next file"""
-        self.selected_file = None
-        self.file_info_label.setText("No file selected")
-        self.file_info_label.setStyleSheet("color: #666; font-style: italic; margin: 10px;")
-        self.upload_button.setEnabled(False)
-        self.button_status_label.setText("Select a CSV file to enable the analyze button")
-        self.button_status_label.setStyleSheet("color: #666; font-style: italic; margin: 5px;")
+            self.upload_button.setText("🚀 Upload & Analyze Dataset")
+            self.progress_bar.setValue(0)

@@ -13,10 +13,28 @@ const History = ({ onSelectDataset }) => {
 
   const fetchHistory = async () => {
     try {
+      console.log('Fetching history...');
       const response = await dataAPI.getHistory();
-      setHistory(response.data.datasets);
+      console.log('History response:', response.data);
+      
+      // Handle different response formats
+      if (response.data.datasets) {
+        setHistory(response.data.datasets);
+      } else if (Array.isArray(response.data)) {
+        setHistory(response.data);
+      } else {
+        setHistory([]);
+      }
+      setError('');
     } catch (err) {
-      setError('Failed to load history');
+      console.error('History fetch error:', err);
+      const errorMessage = err.response?.data?.error || err.message || 'Failed to load history';
+      setError(errorMessage);
+      
+      // If authentication error, suggest re-login
+      if (err.response?.status === 401) {
+        setError('Authentication expired. Please logout and login again.');
+      }
     } finally {
       setLoading(false);
     }

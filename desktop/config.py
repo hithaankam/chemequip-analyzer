@@ -12,6 +12,8 @@ API_ENDPOINTS = {
     'analyze': f"{API_BASE_URL}/api/analyze/",
     'history': f"{API_BASE_URL}/api/history/",
     'dataset': f"{API_BASE_URL}/api/dataset/{{id}}/",
+    'generate_pdf': f"{API_BASE_URL}/api/generate-pdf/",
+    'generate_pdf_dataset': f"{API_BASE_URL}/api/generate-pdf/{{id}}/",
 }
 
 # Application Settings

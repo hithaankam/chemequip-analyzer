@@ -30,6 +30,95 @@ ChartJS.register(
   LinearScaleScatter
 );
 
+// Correlation Heatmap Component
+const CorrelationHeatmap = ({ correlations }) => {
+  const parameters = ['Flowrate', 'Pressure', 'Temperature'];
+  
+  // Create correlation matrix
+  const correlationMatrix = [
+    [1.0, correlations.flowrate_pressure || 0, correlations.flowrate_temperature || 0],
+    [correlations.flowrate_pressure || 0, 1.0, correlations.pressure_temperature || 0],
+    [correlations.flowrate_temperature || 0, correlations.pressure_temperature || 0, 1.0]
+  ];
+
+  // Get color based on correlation value
+  const getColor = (value) => {
+    // Use RdBu_r colormap (Red-Blue reversed) like matplotlib
+    // Positive correlations: red shades, Negative correlations: blue shades
+    const intensity = Math.abs(value);
+    
+    if (value > 0.75) return '#8B0000'; // Dark red
+    else if (value > 0.5) return '#DC143C'; // Crimson
+    else if (value > 0.25) return '#FF6347'; // Tomato
+    else if (value > 0) return '#FFA07A'; // Light salmon
+    else if (value === 0) return '#F5F5F5'; // Very light gray
+    else if (value > -0.25) return '#87CEEB'; // Sky blue
+    else if (value > -0.5) return '#4682B4'; // Steel blue
+    else if (value > -0.75) return '#1E90FF'; // Dodger blue
+    else return '#000080'; // Navy blue
+  };
+
+  // Get text color for readability
+  const getTextColor = (value) => {
+    return Math.abs(value) > 0.5 ? 'white' : 'black';
+  };
+
+  return (
+    <div className="correlation-heatmap">
+      <div className="heatmap-grid">
+        {/* Header row */}
+        <div className="heatmap-cell header"></div>
+        {parameters.map(param => (
+          <div key={param} className="heatmap-cell header">{param}</div>
+        ))}
+        
+        {/* Data rows */}
+        {parameters.map((rowParam, i) => (
+          <React.Fragment key={rowParam}>
+            <div className="heatmap-cell header">{rowParam}</div>
+            {parameters.map((colParam, j) => (
+              <div 
+                key={`${i}-${j}`}
+                className="heatmap-cell data"
+                style={{
+                  backgroundColor: getColor(correlationMatrix[i][j]),
+                  color: getTextColor(correlationMatrix[i][j])
+                }}
+              >
+                {correlationMatrix[i][j].toFixed(3)}
+              </div>
+            ))}
+          </React.Fragment>
+        ))}
+      </div>
+      
+      {/* Legend */}
+      <div className="heatmap-legend">
+        <div className="legend-item">
+          <div className="legend-color" style={{backgroundColor: '#000080'}}></div>
+          <span>-1.0</span>
+        </div>
+        <div className="legend-item">
+          <div className="legend-color" style={{backgroundColor: '#4682B4'}}></div>
+          <span>-0.5</span>
+        </div>
+        <div className="legend-item">
+          <div className="legend-color" style={{backgroundColor: '#F5F5F5', border: '1px solid #ccc'}}></div>
+          <span>0.0</span>
+        </div>
+        <div className="legend-item">
+          <div className="legend-color" style={{backgroundColor: '#FF6347'}}></div>
+          <span>+0.5</span>
+        </div>
+        <div className="legend-item">
+          <div className="legend-color" style={{backgroundColor: '#8B0000'}}></div>
+          <span>+1.0</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const DataVisualization = ({ analysisData }) => {
   const [activeTab, setActiveTab] = useState('overview');
 
@@ -411,6 +500,20 @@ const DataVisualization = ({ analysisData }) => {
   console.log('Correlation Data:', correlationData);
   console.log('Valid correlations:', validCorrelations);
 
+  // Correlation interpretation function
+  const interpretCorrelation = (correlation) => {
+    const absCorr = Math.abs(correlation);
+    let strength = '';
+    if (absCorr > 0.8) strength = 'Very Strong';
+    else if (absCorr > 0.6) strength = 'Strong';
+    else if (absCorr > 0.4) strength = 'Moderate';
+    else if (absCorr > 0.2) strength = 'Weak';
+    else strength = 'Very Weak';
+    
+    const direction = correlation > 0 ? 'Positive' : 'Negative';
+    return `${strength} ${direction}`;
+  };
+
   const outlierSummaryData = {
     labels: Object.keys(outlierData),
     datasets: [
@@ -763,18 +866,49 @@ const DataVisualization = ({ analysisData }) => {
   );
 
   const renderCorrelations = () => (
-    <div className="charts-grid">
-      <div className="chart-container">
-        <h4>Parameter Correlations</h4>
-        <Bar data={correlationData} options={correlationOptions} />
+    <div>
+      <div className="charts-grid">
+        <div className="chart-container">
+          <h4>Parameter Correlations</h4>
+          <Bar data={correlationData} options={correlationOptions} />
+        </div>
+        
+        <div className="chart-container">
+          <h4>Correlation Matrix Heatmap</h4>
+          <CorrelationHeatmap correlations={keyCorrelations} />
+        </div>
       </div>
       
       <div className="correlation-insights">
         <h4>Correlation Insights</h4>
         <div className="correlation-details">
-          <p><strong>Flowrate-Temperature:</strong> {(keyCorrelations.flowrate_temperature || 0).toFixed(3)}</p>
-          <p><strong>Flowrate-Pressure:</strong> {(keyCorrelations.flowrate_pressure || 0).toFixed(3)}</p>
-          <p><strong>Pressure-Temperature:</strong> {(keyCorrelations.pressure_temperature || 0).toFixed(3)}</p>
+          <div className="correlation-item">
+            <strong>Flowrate-Temperature:</strong> {(keyCorrelations.flowrate_temperature || 0).toFixed(3)}
+            <span className="correlation-strength">({interpretCorrelation(keyCorrelations.flowrate_temperature || 0)})</span>
+          </div>
+          <div className="correlation-item">
+            <strong>Flowrate-Pressure:</strong> {(keyCorrelations.flowrate_pressure || 0).toFixed(3)}
+            <span className="correlation-strength">({interpretCorrelation(keyCorrelations.flowrate_pressure || 0)})</span>
+          </div>
+          <div className="correlation-item">
+            <strong>Pressure-Temperature:</strong> {(keyCorrelations.pressure_temperature || 0).toFixed(3)}
+            <span className="correlation-strength">({interpretCorrelation(keyCorrelations.pressure_temperature || 0)})</span>
+          </div>
+        </div>
+        
+        <div className="correlation-implications">
+          <h5>Operational Implications</h5>
+          <div className="implications-list">
+            {Math.abs(keyCorrelations.flowrate_temperature || 0) > 0.5 && (
+              <p>• Strong flowrate-temperature relationship suggests thermal efficiency considerations</p>
+            )}
+            {Math.abs(keyCorrelations.flowrate_pressure || 0) > 0.5 && (
+              <p>• Significant flowrate-pressure correlation indicates hydraulic system interdependencies</p>
+            )}
+            {Math.abs(keyCorrelations.pressure_temperature || 0) > 0.5 && (
+              <p>• Pressure-temperature correlation suggests thermodynamic relationships</p>
+            )}
+          </div>
         </div>
       </div>
     </div>
