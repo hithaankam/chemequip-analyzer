@@ -25,16 +25,32 @@ const FileUpload = ({ onUploadSuccess }) => {
       return;
     }
 
+    // Check if user is authenticated
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      setError('Please login first');
+      return;
+    }
+
     setUploading(true);
     setError('');
 
     try {
+      console.log('Starting file upload...', file.name);
       const response = await dataAPI.uploadFile(file);
+      console.log('Upload successful:', response.data);
       onUploadSuccess(response.data);
       setFile(null);
       document.getElementById('file-input').value = '';
     } catch (err) {
-      setError(err.response?.data?.error || 'Upload failed');
+      console.error('Upload error:', err);
+      const errorMessage = err.response?.data?.error || err.message || 'Upload failed';
+      setError(errorMessage);
+      
+      // If authentication error, suggest re-login
+      if (err.response?.status === 401) {
+        setError('Authentication expired. Please logout and login again.');
+      }
     } finally {
       setUploading(false);
     }
