@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import Login from './components/Auth/Login';
-import Register from './components/Auth/Register';
-import Dashboard from './components/Dashboard/Dashboard';
+import Login from './components/auth/Login';
+import Register from './components/auth/Register';
+import Dashboard from './components/dashboard/Dashboard';
 import './App.css';
 
 function App() {
