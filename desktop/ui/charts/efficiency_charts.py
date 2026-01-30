@@ -122,10 +122,28 @@ class EfficiencyCharts(QWidget):
         ax = figure.add_subplot(111)
         
         if not rankings:
-            ax.text(0.5, 0.5, 'No efficiency data available', ha='center', va='center', 
-                   transform=ax.transAxes, fontsize=14, color=COLORS['text_disabled'])
+            # Professional empty state styling
+            ax.text(0.5, 0.6, '📊', horizontalalignment='center', verticalalignment='center',
+                   transform=ax.transAxes, fontsize=32, alpha=0.3)
+            ax.text(0.5, 0.4, 'No efficiency data available', 
+                   horizontalalignment='center', verticalalignment='center',
+                   transform=ax.transAxes, fontsize=14, color=COLORS['text_disabled'],
+                   fontweight='500')
+            ax.text(0.5, 0.3, 'Upload equipment data to see efficiency rankings', 
+                   horizontalalignment='center', verticalalignment='center',
+                   transform=ax.transAxes, fontsize=12, color=COLORS['text_disabled'],
+                   style='italic')
+            
+            # Clean empty state appearance
             ax.set_xticks([])
             ax.set_yticks([])
+            ax.spines['top'].set_visible(False)
+            ax.spines['right'].set_visible(False)
+            ax.spines['bottom'].set_visible(False)
+            ax.spines['left'].set_visible(False)
+            ax.set_facecolor(COLORS['surface_variant'])
+            
+            figure.patch.set_facecolor('white')
             figure.tight_layout()
             self.efficiency_chart.canvas.draw()
             return

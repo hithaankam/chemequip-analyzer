@@ -293,7 +293,8 @@ class CorrelationCharts(QWidget):
                    f'{value:.3f}', ha='center', va='bottom' if height >= 0 else 'top',
                    fontsize=10, color=COLORS['text_primary'], fontweight='bold')
         
-        figure.tight_layout()
+        # Improve layout with better margins to prevent label clipping
+        figure.subplots_adjust(left=0.15, right=0.95, top=0.95, bottom=0.25)
         self.correlation_chart_widget.canvas.draw()
         
     def update_correlation_heatmap(self, key_correlations):
@@ -311,7 +312,7 @@ class CorrelationCharts(QWidget):
             [float(key_correlations.get('flowrate_temperature', 0)), float(key_correlations.get('pressure_temperature', 0)), 1.0]
         ])
         
-        # Create professional heatmap
+        # Create professional heatmap using RdBu_r colormap
         im = ax.imshow(correlation_matrix, cmap='RdBu_r', vmin=-1, vmax=1, aspect='equal')
         
         # Set ticks and labels
@@ -333,7 +334,8 @@ class CorrelationCharts(QWidget):
         cbar.set_label('Correlation Coefficient', fontsize=11, color=COLORS['text_secondary'])
         cbar.ax.tick_params(colors=COLORS['text_secondary'])
         
-        figure.tight_layout()
+        # Improve layout with better margins
+        figure.subplots_adjust(left=0.15, right=0.85, top=0.95, bottom=0.15)
         self.heatmap_widget.canvas.draw()
         
     def update_correlation_insights(self, analysis_results):

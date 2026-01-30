@@ -4,8 +4,8 @@ Inspired by Material UI/Ant Design dashboard layouts
 """
 
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTabWidget,
-                             QLabel, QScrollArea, QFrame, QGridLayout)
-from PyQt5.QtCore import Qt
+                             QLabel, QScrollArea, QFrame, QGridLayout, QPushButton)
+from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QFont
 
 from .charts.overview_charts import OverviewCharts
@@ -19,6 +19,9 @@ from .design_system import (COLORS, SPACING, DIMENSIONS, TAB_STYLE,
 
 class DashboardWidget(QWidget):
     """Professional dashboard with card-based layout"""
+    
+    # Add signal for PDF generation
+    pdf_generation_requested = pyqtSignal()
     
     def __init__(self):
         super().__init__()
@@ -52,9 +55,13 @@ class DashboardWidget(QWidget):
             }}
         """)
         
-        header_layout = QVBoxLayout(header_frame)
+        header_layout = QHBoxLayout(header_frame)
         header_layout.setContentsMargins(0, 0, 0, 0)
-        header_layout.setSpacing(SPACING['xs'])
+        header_layout.setSpacing(SPACING['lg'])
+        
+        # Left side - title and subtitle
+        title_section = QVBoxLayout()
+        title_section.setSpacing(SPACING['xs'])
         
         # Title
         title_label = QLabel("Analysis Dashboard")
@@ -64,8 +71,39 @@ class DashboardWidget(QWidget):
         subtitle_label = QLabel("Comprehensive equipment parameter analysis and insights")
         subtitle_label.setStyleSheet(get_body_text_style())
         
-        header_layout.addWidget(title_label)
-        header_layout.addWidget(subtitle_label)
+        title_section.addWidget(title_label)
+        title_section.addWidget(subtitle_label)
+        
+        # Right side - PDF generation button
+        self.pdf_button = QPushButton("📄 Generate PDF Report")
+        self.pdf_button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLORS['success']};
+                color: white;
+                border: none;
+                padding: {SPACING['md']}px {SPACING['lg']}px;
+                border-radius: 6px;
+                font-size: 14px;
+                font-weight: 600;
+                min-width: 150px;
+            }}
+            QPushButton:hover {{
+                background-color: #45a049;
+            }}
+            QPushButton:pressed {{
+                background-color: #3d8b40;
+            }}
+            QPushButton:disabled {{
+                background-color: {COLORS['border']};
+                color: {COLORS['text_disabled']};
+            }}
+        """)
+        self.pdf_button.setEnabled(False)  # Initially disabled
+        self.pdf_button.clicked.connect(self.generate_pdf_report)
+        
+        header_layout.addLayout(title_section)
+        header_layout.addStretch()
+        header_layout.addWidget(self.pdf_button)
         
         layout.addWidget(header_frame)
         
@@ -180,6 +218,9 @@ class DashboardWidget(QWidget):
         self.no_data_frame.setVisible(False)
         self.tab_widget.setVisible(True)
         
+        # Enable PDF generation button
+        self.pdf_button.setEnabled(True)
+        
         # Update all chart widgets
         analysis_results = analysis_data['analysis_results']
         
@@ -203,10 +244,17 @@ class DashboardWidget(QWidget):
             traceback.print_exc()
             self.show_error(f"Error displaying analysis: {str(e)}")
             
+    def generate_pdf_report(self):
+        """Generate PDF report - emit signal to main window"""
+        self.pdf_generation_requested.emit()
+            
     def show_no_data(self):
         """Show no data state"""
         self.no_data_frame.setVisible(True)
         self.tab_widget.setVisible(False)
+        
+        # Disable PDF generation button
+        self.pdf_button.setEnabled(False)
         
         # Reset description
         self.desc_label.setText("Upload a CSV file to begin comprehensive equipment analysis")
@@ -230,4 +278,5 @@ class DashboardWidget(QWidget):
     def clear_data(self):
         """Clear all dashboard data"""
         self.current_analysis = None
+        self.pdf_button.setEnabled(False)
         self.show_no_data()

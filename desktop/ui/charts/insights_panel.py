@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
 from PyQt5.QtCore import Qt
 import json
 
-from ..design_system import (COLORS, SPACING, DIMENSIONS, CARD_STYLE,
+from ..design_system import (COLORS, SPACING, DIMENSIONS, CARD_STYLE, TYPOGRAPHY,
                             get_section_title_style, get_card_title_style, 
                             get_body_text_style, get_caption_style)
 
@@ -516,29 +516,53 @@ class InsightsPanel(QWidget):
         return f"{strength} {direction}"
         
     def show_no_data_message(self):
-        """Show no data available message"""
+        """Show professional no data available message"""
         no_data_frame = QFrame()
-        no_data_frame.setStyleSheet(CARD_STYLE)
-        
-        no_data_layout = QVBoxLayout(no_data_frame)
-        no_data_layout.setAlignment(Qt.AlignCenter)
-        
-        no_data_label = QLabel("No insights data available")
-        no_data_label.setAlignment(Qt.AlignCenter)
-        no_data_label.setStyleSheet(f"""
-            QLabel {{
-                color: {COLORS['text_disabled']};
-                font-size: 18px;
-                font-weight: 500;
-                margin: {SPACING['xl']}px;
+        no_data_frame.setStyleSheet(f"""
+            QFrame {{
+                background-color: {COLORS['surface']};
+                border: 2px dashed {COLORS['border']};
+                border-radius: 12px;
+                padding: {SPACING['xxl']}px;
+                margin: {SPACING['lg']}px;
             }}
         """)
         
-        desc_label = QLabel("Please upload and analyze a dataset to view comprehensive insights.")
+        no_data_layout = QVBoxLayout(no_data_frame)
+        no_data_layout.setAlignment(Qt.AlignCenter)
+        no_data_layout.setSpacing(SPACING['lg'])
+        
+        # Icon
+        icon_label = QLabel("💡")
+        icon_label.setAlignment(Qt.AlignCenter)
+        icon_label.setStyleSheet("font-size: 48px; margin: 0;")
+        
+        # Title
+        no_data_label = QLabel("No Insights Available")
+        no_data_label.setAlignment(Qt.AlignCenter)
+        no_data_label.setStyleSheet(f"""
+            QLabel {{
+                color: {COLORS['text_primary']};
+                font-size: 20px;
+                font-weight: 600;
+                margin: 0;
+            }}
+        """)
+        
+        # Description
+        desc_label = QLabel("Upload equipment data to generate comprehensive insights and recommendations")
         desc_label.setAlignment(Qt.AlignCenter)
         desc_label.setWordWrap(True)
-        desc_label.setStyleSheet(get_body_text_style())
+        desc_label.setStyleSheet(f"""
+            QLabel {{
+                color: {COLORS['text_secondary']};
+                font-size: {TYPOGRAPHY['body']['size']}px;
+                margin: 0;
+                max-width: 400px;
+            }}
+        """)
         
+        no_data_layout.addWidget(icon_label)
         no_data_layout.addWidget(no_data_label)
         no_data_layout.addWidget(desc_label)
         

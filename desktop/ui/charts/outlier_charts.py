@@ -509,17 +509,34 @@ class OutlierCharts(QWidget):
         return card
         
     def show_no_data_message(self):
-        """Show no data available message"""
+        """Show professional no data available message"""
         for widget in [self.summary_chart_widget, self.distribution_widget]:
             figure = widget.figure
             figure.clear()
             
             ax = figure.add_subplot(111)
-            ax.text(0.5, 0.5, 'No outlier data available', 
+            
+            # Professional empty state styling
+            ax.text(0.5, 0.6, '📊', horizontalalignment='center', verticalalignment='center',
+                   transform=ax.transAxes, fontsize=32, alpha=0.3)
+            ax.text(0.5, 0.4, 'No outlier data available', 
                    horizontalalignment='center', verticalalignment='center',
-                   transform=ax.transAxes, fontsize=14, color=COLORS['text_disabled'])
+                   transform=ax.transAxes, fontsize=14, color=COLORS['text_disabled'],
+                   fontweight='500')
+            ax.text(0.5, 0.3, 'Upload equipment data to see outlier analysis', 
+                   horizontalalignment='center', verticalalignment='center',
+                   transform=ax.transAxes, fontsize=12, color=COLORS['text_disabled'],
+                   style='italic')
+            
+            # Clean empty state appearance
             ax.set_xticks([])
             ax.set_yticks([])
+            ax.spines['top'].set_visible(False)
+            ax.spines['right'].set_visible(False)
+            ax.spines['bottom'].set_visible(False)
+            ax.spines['left'].set_visible(False)
+            ax.set_facecolor(COLORS['surface_variant'])
             
+            figure.patch.set_facecolor('white')
             figure.tight_layout()
             widget.canvas.draw()
