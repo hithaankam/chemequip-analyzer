@@ -62,9 +62,6 @@ export const authAPI = {
 };
 
 export const dataAPI = {
-  // Test connection to backend using health check endpoint
-  testConnection: () => api.get('/health/', { baseURL: 'http://127.0.0.1:8000' }),
-  
   uploadFile: (file) => {
     const formData = new FormData();
     formData.append('file', file);

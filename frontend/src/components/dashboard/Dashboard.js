@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import FileUpload from './FileUpload';
 import DataVisualization from './DataVisualization';
 import History from './History';
@@ -9,21 +9,6 @@ const Dashboard = ({ user, onLogout }) => {
   const [currentAnalysis, setCurrentAnalysis] = useState(null);
   const [loading, setLoading] = useState(false);
   const [pdfGenerating, setPdfGenerating] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState('checking');
-
-  // Test backend connection on component mount
-  useEffect(() => {
-    testBackendConnection();
-  }, []);
-
-  const testBackendConnection = async () => {
-    try {
-      await dataAPI.testConnection();
-      setConnectionStatus('connected');
-    } catch (error) {
-      setConnectionStatus('disconnected');
-    }
-  };
 
   const handleUploadSuccess = (analysisData) => {
     setCurrentAnalysis(analysisData);
@@ -93,9 +78,6 @@ const Dashboard = ({ user, onLogout }) => {
         <h1 className="dashboard-title">Chemical Equipment Analyzer</h1>
         <div className="user-info">
           <span>Welcome, {user.username}!</span>
-          {connectionStatus === 'disconnected' && (
-            <span className="connection-error">⚠️ Backend Disconnected</span>
-          )}
           {currentAnalysis && (
             <button 
               onClick={handleGeneratePDF} 
@@ -115,15 +97,6 @@ const Dashboard = ({ user, onLogout }) => {
         <FileUpload onUploadSuccess={handleUploadSuccess} />
         <History onSelectDataset={handleSelectDataset} />
       </div>
-
-      {connectionStatus === 'disconnected' && (
-        <div className="error-banner">
-          <p>⚠️ Cannot connect to backend server. Please ensure the Django server is running on http://127.0.0.1:8000</p>
-          <button onClick={testBackendConnection} className="retry-button">
-            Retry Connection
-          </button>
-        </div>
-      )}
 
       {loading && (
         <div className="loading">Loading dataset...</div>
