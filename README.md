@@ -171,7 +171,6 @@ Project Link: [https://github.com/hithaankam/chemequip-analyzer](https://github.
 * [Chart.js](https://www.chartjs.org/)
 * [PyQt5](https://pypi.org/project/PyQt5/)
 * [ReportLab](https://www.reportlab.com/)
-* [Railway](https://railway.app/) for hosting
 
 <!-- MARKDOWN LINKS & IMAGES -->
 [React.js]: https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB
@@ -186,3 +185,4 @@ Project Link: [https://github.com/hithaankam/chemequip-analyzer](https://github.
 [PostgreSQL-url]: https://www.postgresql.org/
 [Chart.js]: https://img.shields.io/badge/Chart.js-FF6384?style=for-the-badge&logo=chartdotjs&logoColor=white
 [Chart-url]: https://www.chartjs.org/
+
